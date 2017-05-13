@@ -1,47 +1,6 @@
 import re
 from urllib import parse
-from ckb.types import (RGBColor, ARGBColor,
-                       GradientColorStops, AGradientColorStops)
-
-
-def skip_until(string):
-    try:
-        while input() != string:
-            pass
-    except EOFError:
-        print(f'Error [ckb-python]: Reached EOF looking for "{string}"')
-        exit(-2)
-
-
-def read_keymap():
-    skip_until('begin keymap')
-
-    match = re.search(r'^keycount ([\d]+)', input())
-    if match is None:
-        print('Error [ckb-python]: "begin keymap" not followed by "keycount"')
-        exit(-3)
-
-    keycount = int(match.group(1))
-    keys = []
-    while keycount > 0:
-        match = re.search(r'^key (\w+) (\d+),(\d+)', input())
-        if match is None:
-            continue
-        key_name = match.group(1)
-        key_x = int(match.group(2))
-        key_y = int(match.group(3))
-        keys.append(Key(key_name, key_x, key_y))
-        keycount -= 1
-
-    skip_until('end keymap')
-    return keys
-
-
-def format_value(value):
-    if value is bool:
-        return '1' if value else '0'
-    else:
-        return str(value)
+from ckb.types import ARGBColor
 
 
 class Key(object):
@@ -82,7 +41,6 @@ class Effect(object):
         self.presets = presets
 
         self.keys = []
-        self.param_values = {}
 
     def run(self, argv):
         if len(argv) == 2:
@@ -114,12 +72,12 @@ class Effect(object):
         print('\n'.join(info))
 
     def main(self):
-        self.keys = read_keymap()
+        self.keys = self.read_keymap()
 
-        skip_until('begin params')
+        self.skip_until('begin params')
         self.read_param_values()
 
-        skip_until('begin run')
+        self.skip_until('begin run')
         print('begin run')
 
         # Main loop
@@ -142,37 +100,58 @@ class Effect(object):
 
         print('end run')
 
+    def skip_until(self, string):
+        try:
+            while input() != string:
+                pass
+        except EOFError:
+            print(f'Error [ckb-python]: Reached EOF looking for "{string}"')
+            exit(-2)
+
+    def read_keymap(self):
+        self.skip_until('begin keymap')
+
+        match = re.search(r'^keycount ([\d]+)', input())
+        if match is None:
+            print('Error [ckb-python]: "begin keymap" not followed by '
+                  '"keycount"')
+            exit(-3)
+
+        keycount = int(match.group(1))
+        keys = []
+        while keycount > 0:
+            match = re.search(r'^key (\w+) (\d+),(\d+)', input())
+            if match is None:
+                continue
+            key_name = match.group(1)
+            key_x = int(match.group(2))
+            key_y = int(match.group(3))
+            keys.append(Key(key_name, key_x, key_y))
+            keycount -= 1
+
+        self.skip_until('end keymap')
+        return keys
+
     def read_param_values(self):
         try:
             while True:
                 line = input()
                 if line == 'end params':
                     break
+
                 match = re.search(r'^param (\w+) (.+)', line)
                 if match is None:
                     continue
+
                 param_name = match.group(1)
-                param_value = match.group(2)
-                params = self.params
-
-                if param_name not in params:
+                if param_name not in self.params:
                     continue
-                param_type = params[param_name].type
 
-                value_parser = {
-                    'long': int,
-                    'double': float,
-                    'bool': lambda b: b == '1',
-                    'rgb': RGBColor.from_str,
-                    'argb': ARGBColor.from_str,
-                    'gradient': GradientColorStops.from_str,
-                    'agradient': AGradientColorStops.from_str,
-                    'angle': int,
-                    'string': lambda s: s
-                }
-                value = value_parser[param_type](param_value)
-                self.param_values[param_name] = value
-                self.param_changed(param_name, value)
+                param = self.params[param_name]
+
+                value_str = match.group(2)
+                param.set_value_from_str(value_str)
+                self.param_changed(param)
         except EOFError:
             print('Error [ckb-python]: Reached EOF reading parameters')
             exit(-2)
@@ -201,7 +180,7 @@ class Effect(object):
             print(f'argb {key.name} {key.color}')
         print('end frame')
 
-    def param_changed(self, name, value): pass
+    def param_changed(self, param): pass
 
     def keypress(self, key, state): pass
 
