@@ -3,7 +3,19 @@ import re
 
 class RGBColor:
     def __init__(self, r=0, g=0, b=0):
-        self.rgb = (r, g, b)
+        self.r = r
+        self.g = g
+        self.b = b
+
+    @property
+    def rgb(self):
+        return (self.r, self.g, self.b)
+
+    @rgb.setter
+    def rgb(self, value):
+        self.r = value[0]
+        self.g = value[1]
+        self.b = value[2]
 
     @staticmethod
     def from_str(string):
@@ -18,7 +30,21 @@ class RGBColor:
 
 class ARGBColor:
     def __init__(self, a=0, r=0, g=0, b=0):
-        self.argb = (a, r, g, b)
+        self.a = a
+        self.r = r
+        self.g = g
+        self.b = b
+
+    @property
+    def argb(self):
+        return (self.a, self.r, self.g, self.b)
+
+    @argb.setter
+    def argb(self, value):
+        self.a = value[0]
+        self.r = value[1]
+        self.g = value[2]
+        self.b = value[3]
 
     @staticmethod
     def from_str(string):
