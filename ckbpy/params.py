@@ -121,6 +121,35 @@ class Gradient(ValueParam):
         """Sets the property's value from a string given by ckb."""
         self.value = GradientColorStops.from_str(string)
 
+    def get_color_for_phase(self, phase):
+        """Calculates the gradient's color for the given phase in [0.0,1.0]."""
+        phase_percent = max(0, min(100, int(phase * 100)))
+        color_stops = self.value.color_stops
+        # If the phase is outside of the color_stop's bounds, there isn't much
+        # calculation to do.
+        if phase_percent <= color_stops[0][0]:
+            return color_stops[0][1]
+        if phase_percent >= color_stops[len(color_stops) - 1][0]:
+            return color_stops[len(color_stops) - 1][1]
+
+        # Find the color stops closest to the phase
+        left = color_stops[0]
+        right = color_stops[1]
+        next_index = 2
+        while not (left[0] <= phase_percent and right[0] >= phase_percent):
+            left = right
+            right = color_stops[next_index]
+            next_index += 1
+
+        # Interpolate linearly between the two color-stops
+        right_share = (phase_percent - left[0]) / (right[0] - left[0])
+        left_share = 1.0 - right_share
+        return RGBColor(
+            r=int(left[1].r * left_share + right[1].r * right_share),
+            g=int(left[1].g * left_share + right[1].g * right_share),
+            b=int(left[1].b * left_share + right[1].b * right_share)
+        )
+
     def format_params(self):
         return (f'{quote(self.prefix)} {quote(self.postfix)} '
                 f'{quote(str(self.default_value))}')
@@ -136,6 +165,36 @@ class AGradient(ValueParam):
     def set_value_from_str(self, string):
         """Sets the property's value from a string given by ckb."""
         self.value = AGradientColorStops.from_str(string)
+
+    def get_color_for_phase(self, phase):
+        """Calculates the gradient's color for the given phase in [0.0,1.0]."""
+        phase_percent = max(0.0, min(100.0, phase * 100))
+        color_stops = self.value.color_stops
+        # If the phase is outside of the color_stop's bounds, there isn't much
+        # calculation to do.
+        if phase_percent <= color_stops[0][0]:
+            return color_stops[0][1]
+        if phase_percent >= color_stops[len(color_stops) - 1][0]:
+            return color_stops[len(color_stops) - 1][1]
+
+        # Find the color stops closest to the phase
+        left = color_stops[0]
+        right = color_stops[1]
+        next_index = 2
+        while not (left[0] <= phase_percent and right[0] >= phase_percent):
+            left = right
+            right = color_stops[next_index]
+            next_index += 1
+
+        # Interpolate linearly between the two color-stops
+        right_share = (phase_percent - left[0]) / (right[0] - left[0])
+        left_share = 1.0 - right_share
+        return ARGBColor(
+            a=int(left[1].a * left_share + right[1].a * right_share),
+            r=int(left[1].r * left_share + right[1].r * right_share),
+            g=int(left[1].g * left_share + right[1].g * right_share),
+            b=int(left[1].b * left_share + right[1].b * right_share)
+        )
 
     def format_params(self):
         return (f'{quote(self.prefix)} {quote(self.postfix)} '
