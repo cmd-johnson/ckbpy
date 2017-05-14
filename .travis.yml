@@ -4,4 +4,6 @@ python:
   - "3.6-dev"
   - "3.7-dev"
   - "nightly"
-script: pytest -vv
+script:
+  - pip install .
+  - pytest -vv
