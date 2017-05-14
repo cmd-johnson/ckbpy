@@ -18,11 +18,13 @@ class Preset(object):
         self.title = title
         self.values = values
 
-    def __str__(self):
-        params = ' '.join(f'{k}={quote(str(v))}'
-                          for k, v
-                          in self.values.items())
-        return f'{quote(self.title)} {params}'
+    def format(self, param_defs):
+        params = []
+        for key, value in self.values.items():
+            formatter = (
+                param_defs[key].value_formatter if key in param_defs else str)
+            params.append(f'{key}={quote(formatter(value))}')
+        return f'{quote(self.title)} {" ".join(params)}'
 
 
 class Effect(object):
@@ -80,7 +82,7 @@ class Effect(object):
             f'parammode {"live" if self.live_params else "static"}'
         ]
         info.extend([f'param {p.param_string}' for p in self.params.values()])
-        info.extend([f'preset {p}' for p in self.presets])
+        info.extend([f'preset {p.format(self.params)}' for p in self.presets])
         print('\n'.join(info))
 
     def main(self):
