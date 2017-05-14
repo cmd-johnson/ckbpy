@@ -64,12 +64,13 @@ class GradientColorStops:
     @staticmethod
     def from_str(string):
         def parse_color_stop(stop):
-            match = re.search(r'\d+:[0-9a-f]{2}', string)
+            match = re.search(r'\d+:[0-9a-f]{2}', stop)
             if match is None:
                 return None
             return (int(match.group(1)), RGBColor.from_str(match.group(2)))
         stops = string.split(' ')
-        return [s for s in map(parse_color_stop, stops) if s is not None]
+        return GradientColorStops([s for s in map(parse_color_stop, stops)
+                                   if s is not None])
 
     def __str__(self):
         return ' '.join([f'{p}:{c}' for (p, c) in self.color_stops])
@@ -82,12 +83,13 @@ class AGradientColorStops:
     @staticmethod
     def from_str(string):
         def parse_color_stop(stop):
-            match = re.search(r'\d+:[0-9a-f]{2}', string)
+            match = re.search(r'(\d+):([0-9a-f]{8})', stop)
             if match is None:
                 return None
             return (int(match.group(1)), ARGBColor.from_str(match.group(2)))
         stops = string.split(' ')
-        return [s for s in map(parse_color_stop, stops) if s is not None]
+        return AGradientColorStops([s for s in map(parse_color_stop, stops)
+                                    if s is not None])
 
     def __str__(self):
         return ' '.join([f'{p}:{c}' for (p, c) in self.color_stops])
