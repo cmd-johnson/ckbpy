@@ -2,14 +2,12 @@
 
 import sys
 import logging
-import ckbpy.params as cp
-import ckbpy.types as ct
-from ckbpy.effect import Effect, Preset
+import ckbpy as ckb
 
 
-class GradientEffect(Effect):
+class GradientEffect(ckb.Effect):
     def __init__(self):
-        super(GradientEffect, self).__init__(
+        super(ckb.GradientEffect, self).__init__(
             guid='{3872d62d-b2cb-4fa0-9e6a-e7ed3149e247}',
             name='Python Test',
             version='0.0.0',
@@ -18,23 +16,23 @@ class GradientEffect(Effect):
             license='GPL-2.0',
             description='Description?',
             params=[
-                cp.Long('long', '<', '>', 0, -2, 2),
-                cp.Double('double', '<', '>', 0., -2., 2.),
-                cp.Bool('bool', 'text'),
-                cp.RGB('rgb', '<', '>'),
-                cp.ARGB('argb', '<', '>'),
-                cp.Gradient('gradient', '<', '>'),
-                cp.AGradient('agradient', '<', '>'),
-                cp.Angle('angle', '<', '>'),
-                cp.String('string', '<', '>', 'asdf'),
-                cp.Label('label1', 'doesn\'t do much now, does it.')
+                ckb.Long('long', '<', '>', 0, -2, 2),
+                ckb.Double('double', '<', '>', 0., -2., 2.),
+                ckb.Bool('bool', 'text'),
+                ckb.RGB('rgb', '<', '>'),
+                ckb.ARGB('argb', '<', '>'),
+                ckb.Gradient('gradient', '<', '>'),
+                ckb.AGradient('agradient', '<', '>'),
+                ckb.Angle('angle', '<', '>'),
+                ckb.String('string', '<', '>', 'asdf'),
+                ckb.Label('label1', 'doesn\'t do much now, does it.')
             ],
-            presets=[Preset('GradientEffect?')]
+            presets=[ckb.Preset('GradientEffect?')]
         )
 
     def start(self):
         for key in self.keys:
-            key.color = ct.ARGBColor(255, 255, 255, 0)
+            key.color = ckb.ARGBColor(255, 255, 255, 0)
 
     def param_changed(self, name, value):
         logging.debug(self.param_values)
