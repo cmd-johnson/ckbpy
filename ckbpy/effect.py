@@ -1,7 +1,8 @@
 import re
 import logging
-from urllib import parse
+from urllib.parse import quote, unquote
 from .types import ARGBColor
+from .constants import Keypress, Time
 
 
 class Key(object):
@@ -18,30 +19,33 @@ class Preset(object):
         self.values = values
 
     def __str__(self):
-        params = ' '.join([f'{k}={v}' for k, v in self.values])
-        return f'{self.title} {params}'
+        params = ' '.join(f'{k}={quote(str(v))}'
+                          for k, v
+                          in self.values.items())
+        return f'{quote(self.title)} {params}'
 
 
 class Effect(object):
     def __init__(self, guid, name, version, year, author, license,
-                 description='', kpmode='none', time='duration', repeat=False,
-                 preempt=False, parammode='live', params=[], presets=[]):
+                 description='', kpmode=Keypress.NAME, time=Time.DURATION,
+                 repeat=False, preempt=False, live_params=True,
+                 params=[], presets=[]):
         self.guid = guid
-        self.name = parse.quote(name)
-        self.version = parse.quote(version)
-        self.year = parse.quote(year)
-        self.author = parse.quote(author)
-        self.license = parse.quote(license)
-        self.description = parse.quote(description)
+        self.name = name
+        self.version = version
+        self.year = year
+        self.author = author
+        self.license = license
+        self.description = description
         self.kpmode = kpmode
         self.time = time
         self.repeat = repeat
         self.preempt = preempt
-        self.parammode = parammode
+        self.live_params = live_params
         self.params = dict((p.name, p) for p in params)
-        self.presets = presets
+        self.presets = presets if len(presets) > 0 else [Preset(name)]
 
-        self.keys = []
+        self.keys = {}
 
     def run(self, argv):
         logging.debug(f'starting effect with {argv}')
@@ -55,24 +59,25 @@ class Effect(object):
                     return
             except Exception:
                 logging.exception('An unexpected exception occurred')
+                return
 
         print('This program must be run from within ckb')
         exit(-1)
 
     def print_info(self):
         info = [
-            f'guid {self.guid}',
-            f'name {self.name}',
-            f'version {self.version}',
+            f'guid {quote(self.guid)}',
+            f'name {quote(self.name)}',
+            f'version {quote(self.version)}',
             f'year {self.year}',
-            f'author {self.author}',
-            f'license {self.license}',
-            f'description {self.description}',
+            f'author {quote(self.author)}',
+            f'license {quote(self.license)}',
+            f'description {quote(self.description)}',
             f'kpmode {self.kpmode}',
             f'time {self.time}',
-            'repeat ' + ('on' if self.repeat else 'off'),
-            'preempt ' + ('on' if self.preempt else 'off'),
-            f'parammode {self.parammode}'
+            f'repeat {"on" if self.repeat else "off"}',
+            f'preempt {"on" if self.preempt else "off"}',
+            f'parammode {"live" if self.live_params else "static"}'
         ]
         info.extend([f'param {p.param_string}' for p in self.params.values()])
         info.extend([f'preset {p}' for p in self.presets])
@@ -89,7 +94,7 @@ class Effect(object):
 
         # Main loop
         while True:
-            line = input()
+            line = self.read_line()
             if line == 'end run':
                 break
             elif line == 'start':
@@ -103,13 +108,16 @@ class Effect(object):
             elif line == 'frame':
                 self.print_frame()
             elif line.startswith('time'):
-                self.advance_time(line)
+                self.advance_time(float(line.split(' ')[1]))
 
         print('end run')
 
+    def read_line(self):
+        return ' '.join(unquote(w) for w in input().split(' '))
+
     def skip_until(self, string):
         try:
-            while input() != string:
+            while self.read_line() != string:
                 pass
         except EOFError:
             print(f'Error [ckb-python]: Reached EOF looking for "{string}"')
@@ -118,22 +126,22 @@ class Effect(object):
     def read_keymap(self):
         self.skip_until('begin keymap')
 
-        match = re.search(r'^keycount ([\d]+)', input())
+        match = re.search(r'^keycount ([\d]+)', self.read_line())
         if match is None:
             print('Error [ckb-python]: "begin keymap" not followed by '
                   '"keycount"')
             exit(-3)
 
         keycount = int(match.group(1))
-        keys = []
+        keys = {}
         while keycount > 0:
-            match = re.search(r'^key (\w+) (\d+),(\d+)', input())
+            match = re.search(r'^key (\w+) (\d+),(\d+)', self.read_line())
             if match is None:
                 continue
-            key_name = match.group(1)
+            key_name = unquote(match.group(1))
             key_x = int(match.group(2))
             key_y = int(match.group(3))
-            keys.append(Key(key_name, key_x, key_y))
+            keys[key_name] = Key(key_name, key_x, key_y)
             keycount -= 1
 
         self.skip_until('end keymap')
@@ -142,7 +150,7 @@ class Effect(object):
     def read_param_values(self):
         try:
             while True:
-                line = input()
+                line = self.read_line()
                 if line == 'end params':
                     break
 
@@ -172,19 +180,22 @@ class Effect(object):
         if match.group(1):
             x = int(match.group(1))
             y = int(match.group(2))
-            key = next((k for k in self.keys if k.x == x and k.y == y), None)
+            key = next((k for _, k in self.keys
+                        if k.x == x and k.y == y),
+                       None)
         else:
             name = match.group(3)
-            key = next((k for k in self.keys if k.name == name), None)
+            key = self.keys.get(name, None)
 
         if key is not None:
-            state = match.group(3) == 'down'
+            state = match.group(4) == 'down'
             self.keypress(key, state)
 
     def print_frame(self):
+        self.update_colors()
         print('begin frame')
-        for key in self.keys:
-            print(f'argb {key.name} {key.color}')
+        for key_name, key in self.keys.items():
+            print(f'argb {key_name} {key.color}')
         print('end frame')
 
     def param_changed(self, param): pass
@@ -196,3 +207,5 @@ class Effect(object):
     def start(self): pass
 
     def stop(self): pass
+
+    def update_colors(self): pass
