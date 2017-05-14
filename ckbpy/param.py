@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from urllib.parse import quote, unquote
-from ckb.types import (RGBColor, ARGBColor,
-                       GradientColorStops, AGradientColorStops)
+from .types import (RGBColor, ARGBColor,
+                    GradientColorStops, AGradientColorStops)
 
 
 class Param(ABC):

@@ -1,7 +1,7 @@
 import re
 import logging
 from urllib import parse
-from ckb.types import ARGBColor
+from .types import ARGBColor
 
 
 class Key(object):
