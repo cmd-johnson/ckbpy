@@ -25,6 +25,11 @@ class ValueParam(Param):
         super().__init__(type_name, param_name)
         self.value = self.default_value = default_value
 
+    @property
+    def value_formatter(self):
+        """Returns a function used to format the param's value to str."""
+        return str
+
     @abstractmethod
     def set_value_from_str(self, string):
         """Sets the property's value from a string given by ckb."""
@@ -74,6 +79,10 @@ class Bool(ValueParam):
     def set_value_from_str(self, string):
         """Sets the property's value from a string given by ckb."""
         self.value = string == '1'
+
+    @property
+    def value_formatter(self):
+        return lambda b: '1' if b else '0'
 
     def format_params(self):
         default = '1' if self.default_value else '0'
@@ -237,4 +246,4 @@ class Label(Param):
         self.text = text
 
     def format_params(self):
-        return quote(self.text)
+        return f'{quote(self.text)} '
