@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from urllib.parse import quote, unquote
+from urllib.parse import quote
 from .types import (RGBColor, ARGBColor,
                     GradientColorStops, AGradientColorStops)
 
@@ -123,7 +123,7 @@ class Gradient(ValueParam):
 
     def format_params(self):
         return (f'{quote(self.prefix)} {quote(self.postfix)} '
-                f'{self.default_value}')
+                f'{quote(str(self.default_value))}')
 
 
 class AGradient(ValueParam):
@@ -139,7 +139,7 @@ class AGradient(ValueParam):
 
     def format_params(self):
         return (f'{quote(self.prefix)} {quote(self.postfix)} '
-                f'{self.default_value}')
+                f'{quote(str(self.default_value))}')
 
 
 class Angle(ValueParam):
@@ -165,7 +165,7 @@ class String(ValueParam):
 
     def set_value_from_str(self, string):
         """Sets the property's value from a string given by ckb."""
-        self.value = unquote(string)
+        self.value = string
 
     def format_params(self):
         return (f'{quote(self.prefix)} {quote(self.postfix)} '
