@@ -64,7 +64,7 @@ class GradientColorStops:
     @staticmethod
     def from_str(string):
         def parse_color_stop(stop):
-            match = re.search(r'\d+:[0-9a-f]{2}', stop)
+            match = re.search(r'(\d+):([0-9a-f]{6})', stop)
             if match is None:
                 return None
             return (int(match.group(1)), RGBColor.from_str(match.group(2)))
