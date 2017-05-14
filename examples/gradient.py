@@ -22,12 +22,19 @@ class GradientEffect(ckb.Effect):
                     (100, ckb.ARGBColor.from_str('ffffffff'))
                 ]),
                 'duration': 1.0,
-                'stop': 0,
-                'kpstop': 0
+                'kptrigger': 1
+            }),
+            ckb.Preset('Fade out', {
+                'gradient': ckb.AGradientColorStops([
+                    (0,   ckb.ARGBColor.from_str('00000000')),
+                    (100, ckb.ARGBColor.from_str('ff000000'))
+                ]),
+                'duration': 1.0,
+                'kptrigger': 1
             }),
             ckb.Preset('Rainbow', {
                 'gradient': ckb.AGradientColorStops([
-                    (0,   ckb.ARGBColor.from_str('ffff0000')),
+                    (0,   ckb.ARGBColor.from_str('00ff0000')),
                     (17,  ckb.ARGBColor.from_str('ffffff00')),
                     (33,  ckb.ARGBColor.from_str('ff00ff00')),
                     (50,  ckb.ARGBColor.from_str('ff00ffff')),
@@ -35,7 +42,8 @@ class GradientEffect(ckb.Effect):
                     (83,  ckb.ARGBColor.from_str('ffff00ff')),
                     (100, ckb.ARGBColor.from_str('ffff0000'))
                 ]),
-                'duration': 2.0
+                'duration': 2.0,
+                'kptrigger': 1
             })
         ]
 
