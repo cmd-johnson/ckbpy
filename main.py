@@ -2,7 +2,7 @@
 
 import sys
 import logging
-import ckbpy.param as cp
+import ckbpy.params as cp
 import ckbpy.types as ct
 from ckbpy.effect import Effect, Preset
 
