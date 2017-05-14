@@ -1,4 +1,5 @@
 import re
+import logging
 from urllib import parse
 from ckb.types import ARGBColor
 
@@ -43,14 +44,20 @@ class Effect(object):
         self.keys = []
 
     def run(self, argv):
+        logging.debug(f'starting effect with {argv}')
         if len(argv) == 2:
-            if argv[1] == '--ckb-info':
-                self.print_info()
-            elif argv[1] == '--ckb-run':
-                self.main()
-        else:
-            print('This program must be run from within ckb')
-            exit(-1)
+            try:
+                if argv[1] == '--ckb-info':
+                    self.print_info()
+                    return
+                elif argv[1] == '--ckb-run':
+                    self.main()
+                    return
+            except Exception:
+                logging.exception('An unexpected exception occurred')
+
+        print('This program must be run from within ckb')
+        exit(-1)
 
     def print_info(self):
         info = [

@@ -48,11 +48,4 @@ if __name__ == '__main__':
         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
     )
 
-    logging.info(f'starting effect with {sys.argv}')
-
-    effect = GradientEffect()
-    try:
-        effect.run(sys.argv)
-    except Exception:
-        logging.exception('An unexpected exception occurred')
-    logging.info('exited')
+    GradientEffect().run(sys.argv)
