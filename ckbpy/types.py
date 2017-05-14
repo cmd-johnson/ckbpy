@@ -68,9 +68,13 @@ class GradientColorStops:
             if match is None:
                 return None
             return (int(match.group(1)), RGBColor.from_str(match.group(2)))
+
         stops = string.split(' ')
-        return GradientColorStops([s for s in map(parse_color_stop, stops)
-                                   if s is not None])
+        stops = [s for s in map(parse_color_stop, stops) if s is not None]
+
+        if len(stops) > 0:
+            return GradientColorStops(stops)
+        return None
 
     def __str__(self):
         return ' '.join([f'{p}:{c}' for (p, c) in self.color_stops])
@@ -87,9 +91,13 @@ class AGradientColorStops:
             if match is None:
                 return None
             return (int(match.group(1)), ARGBColor.from_str(match.group(2)))
+
         stops = string.split(' ')
-        return AGradientColorStops([s for s in map(parse_color_stop, stops)
-                                    if s is not None])
+        stops = [s for s in map(parse_color_stop, stops) if s is not None]
+
+        if len(stops) > 0:
+            return AGradientColorStops(stops)
+        return None
 
     def __str__(self):
         return ' '.join([f'{p}:{c}' for (p, c) in self.color_stops])
