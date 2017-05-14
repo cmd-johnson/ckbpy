@@ -56,6 +56,9 @@ class GradientEffect(ckb.Effect):
         anim.target = 1.0 if state else 0.0
         self.animations[key.name] = anim
 
+    def param_changed(self, param):
+        self.update_colors()
+
     def advance_time(self, delta_t):
         finished_animations = []
         for key_name, animation in self.animations.items():
@@ -70,9 +73,10 @@ class GradientEffect(ckb.Effect):
 
     def update_colors(self):
         gradient = self.params['gradient']
-        for key_name, animation in self.animations.items():
-            key_color = gradient.get_color_for_phase(animation.phase)
-            self.keys[key_name].color = key_color
+        for key_name, key in self.keys.items():
+            animation = self.animations.get(key_name, None)
+            animation_phase = animation.phase if animation else 0.0
+            key.color = gradient.get_color_for_phase(animation_phase)
 
 
 if __name__ == '__main__':
