@@ -2,9 +2,9 @@
 
 import sys
 import logging
-import ckb.param as cp
-import ckb.types as ct
-from ckb.effect import Effect, Preset
+import ckbpy.param as cp
+import ckbpy.types as ct
+from ckbpy.effect import Effect, Preset
 
 
 class GradientEffect(Effect):
